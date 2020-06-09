@@ -24,15 +24,6 @@ public class CampaignController {
     @Autowired
     private CampaignService campaignService;
 
-    @PostMapping("create")
-    public BaseResponse<Campaign> createCampaign(@RequestBody CreateCampaignDto campaignDto) {
-        try {
-            return new BaseResponse<>(campaignService.createCampaign(campaignDto), "Successfully created");
-        } catch (SellerNotFoundException e) {
-            return ErrorHandlingUtil.getErrorResponse(e, "Campaign was not created", log);
-        }
-    }
-
     @PostMapping("setCampaignForProducts")
     public BaseResponse setCampaignForProducts(@RequestBody CampaignForProductsDto campaignForProductsDto) {
         try {
@@ -47,6 +38,17 @@ public class CampaignController {
     public BaseResponse deleteCampaign(@PathVariable Long id) {
         campaignService.updateStatus(id, CampaignStatus.DELETED);
         return new BaseResponse<>(null, "Campaign was deleted");
+    }
+
+    /// Main task starts here
+
+    @PostMapping("create")
+    public BaseResponse<Campaign> createCampaign(@RequestBody CreateCampaignDto campaignDto) {
+        try {
+            return new BaseResponse<>(campaignService.createCampaign(campaignDto), "Successfully created");
+        } catch (SellerNotFoundException e) {
+            return ErrorHandlingUtil.getErrorResponse(e, "Campaign was not created", log);
+        }
     }
 
     @PostMapping("serveAd")

@@ -1,6 +1,5 @@
 package irena.test.campaigns.services;
 
-import irena.test.campaigns.CampaignsApplication;
 import irena.test.campaigns.entities.Category;
 import irena.test.campaigns.entities.Product;
 import irena.test.campaigns.exceptions.CategoryNotFoundException;
@@ -45,7 +44,11 @@ public class ProductService {
 
     public Category getCategoryById(long categoryId) {
         log.info("getCategory");
-        return categoryRepository.findById(categoryId).orElseThrow();
+        return categoryRepository.findById(categoryId).orElseThrow(CategoryNotFoundException::new);
+    }
+
+    public Category getCategoryByName(String name) {
+        return categoryRepository.findByName(name).orElseThrow(CategoryNotFoundException::new);
     }
 
     public List<Category> getCategories() {
@@ -55,10 +58,6 @@ public class ProductService {
 
     public List<Product> getProducts() {
         return getProducts(null, null);
-    }
-
-    public Category getCategoryByName(String name) {
-        return categoryRepository.findByName(name).orElseThrow(CategoryNotFoundException::new);
     }
 
     public List<Product> getProducts(Long categoryId) {
