@@ -71,7 +71,7 @@ public class CampaignService {
     }
 
     public Product serveAd(ServeAdDto serveAdDto) {
-        Long categoryId;
+        long categoryId;
         try {
             categoryId = Long.parseLong(serveAdDto.getCategory());
         } catch (NumberFormatException e) {
@@ -80,19 +80,26 @@ public class CampaignService {
         List<Product> products = productService.getProducts(categoryId);
 
         List<CampaignProduct> campaignProducts = campaignProductRepository.findByProductIn(products.stream().map(BaseEntity::getId).collect(Collectors.toList()));
-        if (campaignProducts.isEmpty()) {
-            campaignProducts = campaignProductRepository.findAll(); // If there are no promoted products for the matching category simply return a promoted product with the highest bid
+        List<CampaignProduct> filteredCampaigns = filterOnlyActive(campaignProducts);
+        if (filteredCampaigns.isEmpty()) {
+            filteredCampaigns = filterOnlyActive(campaignProductRepository.findAll());
+             // If there are no promoted products for the matching category simply return a promoted product with the highest bid
         }
-        if (campaignProducts.isEmpty()) {
+         if (filteredCampaigns.isEmpty()) {
             try {
                 return productService.getProducts().get(0);
             } catch (Exception e) {
                 throw new ProductNotFoundException();
             }
         }
-        List<CampaignProduct> sortedCampaigns = campaignProducts.stream().sorted(Comparator.comparing(a -> getCampaign(a.getCampaign()).getBid())).collect(Collectors.toList());
+
+        List<CampaignProduct> sortedCampaigns = filteredCampaigns.stream().sorted(Comparator.comparing(a -> getCampaign(a.getCampaign()).getBid())).collect(Collectors.toList());
         CampaignProduct maxCampaign = sortedCampaigns.get(sortedCampaigns.size() - 1);
 
         return productService.getProductById(maxCampaign.getProduct());
+    }
+
+    private List<CampaignProduct> filterOnlyActive(List<CampaignProduct> campaignProducts) {
+        return campaignProducts.stream().filter(a -> CampaignStatus.ACTIVE.equals(getCampaign(a.getCampaign()).getStatus())).collect(Collectors.toList());
     }
 }
